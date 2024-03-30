@@ -1,6 +1,6 @@
 import { INumberCell, Player } from "./types";
 
-const MAX_DEPTH = 6
+const MAX_DEPTH = 4
 
 export class Game {
   humanScore = 0;

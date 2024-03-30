@@ -6,6 +6,7 @@ import { INumberCell, Player } from "../models/types";
 export function useGame() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const checkBoxRef = useRef<HTMLInputElement | null>(null);
+  const maxDepthRef = useRef<HTMLInputElement | null>(null);
   const [game, setGame] = useState<Game>(new Game());
 
   useEffect(() => {
@@ -16,7 +17,8 @@ export function useGame() {
     if (
       !inputRef.current ||
       !inputRef.current.value.trim() ||
-      !checkBoxRef.current
+      !checkBoxRef.current ||
+      !maxDepthRef.current?.value.trim()
     )
       return;
     const inputValue = parseInt(inputRef.current.value);
@@ -41,6 +43,7 @@ export function useGame() {
     game.computerScore = 0
     game.numbers = transformNumbers;
     game.isMinimax = algorithm.checked
+    game.maxDepth = parseInt(maxDepthRef.current.value);
     game.update = updateBoard;
     game.move = checkBoxRef.current.checked ? Player.Computer : Player.Human;
     game.gameStarted = checkBoxRef.current.checked
@@ -64,5 +67,5 @@ export function useGame() {
     game.makeMove(box);
   };
 
-  return { restart, inputRef, checkBoxRef, game, makeMove };
+  return { restart, inputRef, checkBoxRef, game, makeMove, maxDepthRef };
 }

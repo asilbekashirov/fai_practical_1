@@ -1,7 +1,5 @@
 import { INumberCell, Player } from "./types";
 
-const MAX_DEPTH = 4
-
 export class Game {
   humanScore = 0;
   computerScore = 0;
@@ -10,6 +8,7 @@ export class Game {
   numbers: INumberCell[] = [];
   isStarted: boolean = false;
   isMinimax: boolean = true;
+  maxDepth: number = 3;
   update: (g?: Game) => void = () => {};
 
   public copyGame(): Game {
@@ -21,6 +20,7 @@ export class Game {
     newGame.isStarted = this.isStarted;
     newGame.gameStarted = this.gameStarted;
     newGame.update = this.update;
+    newGame.maxDepth = this.maxDepth;
 
     return newGame;
   }
@@ -104,7 +104,7 @@ export class Game {
   ): number {
     let currentGame = gc;
 
-    if (currentGame.isGameOver() || depth === MAX_DEPTH) {
+    if (currentGame.isGameOver() || depth === currentGame.maxDepth) {
       return currentGame.returnPoints(num);
     }
 
@@ -115,10 +115,10 @@ export class Game {
         gameCopy.removeBox(node);
         let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, false);
         bestVal = Math.max(score, bestVal);
-        // alpha = Math.max(alpha, bestVal)
-        // if (beta <= alpha && !this.isMinimax) {
-        //   return bestVal;
-        // }
+        alpha = Math.max(alpha, bestVal)
+        if (beta <= alpha && !this.isMinimax) {
+          return bestVal;
+        }
       });
       return bestVal;
     } else {
@@ -128,10 +128,10 @@ export class Game {
         gameCopy.removeBox(node);
         let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, true);
         bestVal = Math.min(score, bestVal);
-        // beta = Math.min(beta, bestVal);
-        // if (beta <= alpha && !this.isMinimax) {
-        //   return bestVal;
-        // }
+        beta = Math.min(beta, bestVal);
+        if (beta <= alpha && !this.isMinimax) {
+          return bestVal;
+        }
       });
       return bestVal;
     }

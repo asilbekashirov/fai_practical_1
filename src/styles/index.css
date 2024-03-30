@@ -95,3 +95,21 @@
     flex-direction: row;
     gap: 0.3rem;
 }
+
+.depth_box {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.depth {
+    padding: 15px 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    width: 10rem;
+}
+
+.depth_num {
+    /* width: 1rem; */
+}

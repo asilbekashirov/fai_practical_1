@@ -145,12 +145,12 @@ export class Game {
         gameCopy.removeBox(node);
         currentGame.visitedNodes += 1
 
-        let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, false, isMinimaxAlgorithm);
+        let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, this.gameStarted === Player.Computer, isMinimaxAlgorithm);
         bestVal = Math.max(score, bestVal);
 
         if (!isMinimaxAlgorithm) {
 
-          alpha = Math.max(alpha, bestVal)
+          alpha = Math.max(alpha, score)
           if (beta <= alpha) {
             return bestVal;
           }
@@ -176,8 +176,8 @@ export class Game {
 
         if (!isMinimaxAlgorithm) {
 
-          beta = Math.min(beta, bestVal);
-          if (beta <= alpha) {
+          beta = Math.min(beta, score);
+          if (alpha <= beta) {
             return bestVal;
           }
 

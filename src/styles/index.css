@@ -57,6 +57,20 @@
     color: white;
 }
 
+.generateNumbers:disabled {
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
+.reset {
+    margin-left: 0.5rem;
+    padding: 15px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #1a82e4;
+    color: white;
+}
+
 .numbers {
     display: flex;
     gap: 1rem;
@@ -76,6 +90,10 @@
 
 .move {
     font-size: 4rem;
+    margin-bottom: 2rem;
+}
+
+.info {
     margin-bottom: 2rem;
 }
 

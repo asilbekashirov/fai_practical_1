@@ -1,23 +1,38 @@
 import { ChangeEvent, useState } from "react";
 import { useGame } from "./hooks/useGame";
-import { INumberCell } from "./models/types";
+import { INumberCell, Player } from "./models/types";
 
 function App() {
   const [depth, setDepth] = useState<number>(4);
-  const { restart, inputRef, game, checkBoxRef, makeMove, maxDepthRef } = useGame();
+  const { restart, inputRef, game, checkBoxRef, makeMove, maxDepthRef, reset } = useGame();
+  const isDisabled = game.isStarted
+  const isGameOver = game.isGameOver();
 
   const handleMove = async (num: INumberCell) => {
     makeMove(num);
-    await game.computerMove();
+    queueMicrotask(() => game.computerMove())
   };
 
   const handleRangeChange = (e: ChangeEvent<HTMLInputElement>) =>
     setDepth(parseInt(e.target.value));
 
+  const makeStats = (): string => {
+    if (!game.isStarted) return ''
+    let str = ''
+
+    if (game.move === Player.Human) {
+      str = `Computer took ${(game.computerEndMove - game.computerStartMove).toFixed(2)}ms and visited ${game.visitedNodes} nodes`
+    }
+
+    return str
+  }
+
   return (
     <>
       <p className="move">{game.isStarted && game.move}</p>
+      <p className="info">{makeStats()}</p>
       <div className="numbers">
+        {/* list of generated numbers is displayed here  */}
         {game.numbers.map((num, index) => (
           <div
             key={num.id}
@@ -38,15 +53,21 @@ function App() {
           defaultValue="16"
           type="number"
           className="numsToGenerate"
+          disabled={isDisabled}
         />
-        <button className="generateNumbers" onClick={restart}>
+        <button className="generateNumbers" onClick={restart} disabled={isDisabled}>
           Generate
         </button>
+        {(isDisabled || isGameOver) ? (
+          <button className="reset" onClick={reset}>
+            Restart
+          </button>
+        ) : null}
         <br />
         <label className="label">
           <input
             ref={checkBoxRef}
-            disabled={game.isStarted}
+            disabled={isDisabled}
             type="checkbox"
             id="startSide"
           />
@@ -58,21 +79,23 @@ function App() {
           name="algorithm"
           value="minimax"
           defaultChecked
+          disabled={isDisabled}
         />
         <label htmlFor="minimax">Minimax</label>
-        <input id="alphabeta" type="radio" name="algorithm" value="alphabeta" />
+        <input id="alphabeta" type="radio" name="algorithm" value="alphabeta" disabled={isDisabled} />
         <label htmlFor="alphabeta">Alpha-beta</label>
         <br />
         <div className="depth_box">
           <input
             type="range"
             min="3"
-            max="7"
+            max="6"
             placeholder="Depth"
             onChange={handleRangeChange}
             value={depth}
             className="depth"
             ref={maxDepthRef}
+            disabled={isDisabled}
           />
           <div className="depth_num">Max depth: {depth}</div>
         </div>

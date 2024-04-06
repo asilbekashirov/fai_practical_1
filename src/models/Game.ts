@@ -1,5 +1,13 @@
 import { INumberCell, Player } from "./types";
 
+/**
+ * ### Game class to handle the game state
+ * 
+ * 
+ * 
+ */
+
+
 export class Game {
   humanScore = 0;
   computerScore = 0;
@@ -10,6 +18,9 @@ export class Game {
   isMinimax: boolean = true;
   maxDepth: number = 3;
   update: (g?: Game) => void = () => {};
+  computerStartMove: number = 0
+  computerEndMove: number = 0
+  visitedNodes: number = 0
 
   public copyGame(): Game {
     const newGame = new Game();
@@ -21,11 +32,12 @@ export class Game {
     newGame.gameStarted = this.gameStarted;
     newGame.update = this.update;
     newGame.maxDepth = this.maxDepth;
+    newGame.computerEndMove = this.computerEndMove;
+    newGame.computerStartMove = this.computerStartMove
+    newGame.visitedNodes = this.visitedNodes
 
     return newGame;
   }
-
-  public restartGame(): void {}
 
   public makeMove(box: INumberCell): void {
     if (this.isGameOver()) return;
@@ -33,7 +45,13 @@ export class Game {
     this.updateScore(box);
     this.removeBox(box);
 
-    this.move = this.move === Player.Computer ? Player.Human : Player.Computer;
+    if (this.move === Player.Computer) {
+      this.computerEndMove = performance.now();
+      this.move = Player.Human
+    } else {
+      this.computerStartMove = performance.now()
+      this.move = Player.Computer
+    }
 
     this.update(this);
   }
@@ -52,10 +70,14 @@ export class Game {
     let alpha = -Infinity;
     let beta = Infinity
 
+    this.visitedNodes = 0
     this.numbers.map((num) => {
       const gameCopy = this.copyGame();
       gameCopy.removeBox(num);
-      let score = this.minimax(gameCopy, num, 0, alpha, beta, false);
+      this.visitedNodes += 1
+
+      let score = this.minimax(gameCopy, num, 0, alpha, beta, false, this.isMinimax);
+      this.visitedNodes += gameCopy.visitedNodes
 
       if (score > bestScore) {
         bestScore = score;
@@ -68,9 +90,11 @@ export class Game {
     }
   }
 
-  private removeBox(box: INumberCell): void {
+  public removeBox(box: INumberCell): void {
+    // initiate an empty array to use it later
     const newNodes = [];
 
+    // if the box to be removed has the value of 4 or 2, add two additional nodes to `newNodes` array with values of 2 and 1 acccordingly
     if (box.value === "4") {
       newNodes.push(
         { id: crypto.randomUUID().toString(), value: "2" },
@@ -83,10 +107,12 @@ export class Game {
       );
     }
 
+    // remove clicked box
     const filteredNums = [
       ...this.numbers.filter((n) => n.id !== box.id),
       ...newNodes,
     ].filter(Boolean);
+    // update numbers list
     this.numbers = filteredNums;
 
     if (filteredNums.length === 0) {
@@ -100,7 +126,8 @@ export class Game {
     depth: number,
     alpha: number,
     beta: number,
-    isMax: boolean
+    isMax: boolean,
+    isMinimaxAlgorithm: boolean
   ): number {
     let currentGame = gc;
 
@@ -109,30 +136,55 @@ export class Game {
     }
 
     if (isMax) {
+
       let bestVal = -Infinity;
+
       currentGame.numbers.map((node) => {
+
         const gameCopy = currentGame.copyGame();
         gameCopy.removeBox(node);
-        let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, false);
+        currentGame.visitedNodes += 1
+
+        let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, false, isMinimaxAlgorithm);
         bestVal = Math.max(score, bestVal);
-        alpha = Math.max(alpha, bestVal)
-        if (beta <= alpha && !this.isMinimax) {
-          return bestVal;
+
+        if (!isMinimaxAlgorithm) {
+
+          alpha = Math.max(alpha, bestVal)
+          if (beta <= alpha) {
+            return bestVal;
+          }
+
         }
+
       });
+
       return bestVal;
+
     } else {
+
       let bestVal = Infinity;
+
       currentGame.numbers.map((node) => {
+
         const gameCopy = currentGame.copyGame();
         gameCopy.removeBox(node);
-        let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, true);
+        currentGame.visitedNodes += 1
+
+        let score = currentGame.minimax(gameCopy, num, depth + 1, alpha, beta, true, isMinimaxAlgorithm);
         bestVal = Math.min(score, bestVal);
-        beta = Math.min(beta, bestVal);
-        if (beta <= alpha && !this.isMinimax) {
-          return bestVal;
+
+        if (!isMinimaxAlgorithm) {
+
+          beta = Math.min(beta, bestVal);
+          if (beta <= alpha) {
+            return bestVal;
+          }
+
         }
+
       });
+
       return bestVal;
     }
   }
@@ -141,7 +193,8 @@ export class Game {
     return this.numbers.length === 0;
   }
 
-  private returnPoints(box: INumberCell): number {
+  /** function that return the actual value of a box  */
+  public returnPoints(box: INumberCell): number {
     let val = parseInt(box.value);
 
     if (box.value === "4") {
